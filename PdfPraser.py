@@ -15,13 +15,14 @@ from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LTTextBoxHorizontal, LAParams
 import csv
+from tqdm import tqdm,trange
 logger = logging.getLogger('Task')
 logging.basicConfig()
 logger.setLevel(logging.INFO)
 
 
 class Task(object):
-    def Process_task (self, _file_dir, _csv_file):
+    def Process_task (self, _file_dir, _csv_file,debug=False):
         with open(_csv_file,'w',newline='') as csvfile:
             skywriter = csv.writer(csvfile,dialect='excel')
             for root, dirs, files in os.walk(_file_dir):
@@ -50,22 +51,24 @@ class Task(object):
                             interpreter.process_page(pages)
                             layout = device.get_result()
                             for x in layout:
-                                # time.sleep(2)
                                 if isinstance(x, LTTextBoxHorizontal):
                                     try:
                                         results = x.get_text()
                                         all_text.append(results)
                                     except AttributeError:
                                         continue
+                        #print(all_text)
                         distance_index = all_text.index('距离距离\n')
-                        loss_index = all_text.index('总损耗总损耗\n')
+                        loss_index = all_text.index('激光器 nm\n1310\n')
                         distance = (all_text[distance_index + 1].split('\n'))[-2]
                         loss = (all_text[loss_index + 1].split('\n'))[-2]
+                        #print(distance,loss)
                         fname = name.replace('Fiber', '').replace('_1310OE.sor.pdf', '')
                         skywriter.writerow([fname, distance, loss])
                         device.close()
                         fp.close()
-                        # print(fname,distance,loss)
+                        if debug:
+                            print(fname,distance,loss)
         csvfile.close()
 
 
